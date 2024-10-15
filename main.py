@@ -11,9 +11,22 @@ option = st.selectbox(label="Select Data to view:",
                       options=("Temperature", "Cloud"))
 
 st.subheader(f"{option} for the next {days} days in {place}")
+if place:
+    # Get the temperature/cloud data
+    filtered_data = get_data(place, days)
 
-d, t = get_data(place, days, option)
+    if option == "Temperature":
+        temperatures = [dict["main"]["temp"] for dict in filtered_data]
+        dates = [dict["dt_txt"] for dict in filtered_data]
+        # Create a temperature plot
+        figure = px.line(x=dates, y=temperatures,
+                         labels={"x": "Date", "y": "Temperature(C)"})
+        st.plotly_chart(figure)
 
-figure = px.line(x=d, y=t,
-                 labels={"x": "Date", "y": "Temperature(C)"})
-st.plotly_chart(figure)
+    if option == "Cloud":
+        sky_conditions = [dict["weather"][0]["main"] for dict in filtered_data]
+        print(sky_conditions)
+        images = {"Rain": "images/rain.png", "Clouds": "images/cloud.png",
+                  "Clear": "images/clear.png", "Snow": "images/snow.png"}
+        image_path = [images[condition] for condition in sky_conditions]
+        st.image(image_path, width=115)
